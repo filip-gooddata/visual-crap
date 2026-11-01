@@ -1,0 +1,29 @@
+.github/workflows/release.yml
+  s_b11792c05e3401::t_f0f7dfe3324a82 1-109
+.gitignore
+  s_b11792c05e3401::t_a7bf2c5825b93e 6-9
+README.md
+  s_b11792c05e3401::t_d48414368daf06 33-36
+build.sh
+  s_b11792c05e3401::t_2300b1a6ecc2d4 1-11
+tests/smoke.py
+  s_b11792c05e3401::t_a3a3c36d17787a 1-34
+visual_crap.py
+  s_b11792c05e3401::t_5a48389f53094f 66-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e211e12631e33325d9b53cbc9e61a6e38d80158",
+  "prompts": {},
+  "sessions": {
+    "s_b11792c05e3401": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d7f-0939-7312-a3b5-9a3e8cb91c97",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "Filip Kalný <336421905+filip-gooddata@users.noreply.github.com>"
+    }
+  }
+}
