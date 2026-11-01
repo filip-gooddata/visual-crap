@@ -30,3 +30,7 @@ The D3 force bundle uses d3-force 3.0.0; see [D3-LICENSE.txt](D3-LICENSE.txt). T
 npm install --prefix /tmp/visual-crap-build d3-force@3.0.0 esbuild@0.28.1 --no-save --no-package-lock
 NODE_PATH=/tmp/visual-crap-build/node_modules /tmp/visual-crap-build/node_modules/.bin/esbuild force-worker.js --bundle --minify --format=iife --outfile=force-worker.bundle.js --legal-comments=inline
 ```
+
+## Binary releases
+
+Every push to `main` builds and smoke-tests single-file macOS executables for Apple Silicon and Intel, then publishes a GitHub release with SHA-256 checksums. Releases start at `v0.1.0` and increment the patch version; include `#minor` or `#major` in a commit message to bump that component. Node.js and npm are still required to run Fallow. Download the matching archive from the repository's Releases page and run `visual-crap --help`. To build locally, run `./build.sh`; `VERSION=v1.2.3 ./build.sh` stamps a version.

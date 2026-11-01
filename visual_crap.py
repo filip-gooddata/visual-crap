@@ -63,6 +63,9 @@ def build(health, graph, output, root, source):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    version_file = TOOL / 'version.txt'
+    version = version_file.read_text().strip() if version_file.exists() else 'dev'
+    parser.add_argument('--version', action='version', version=f'visual-crap {version}')
     parser.add_argument('--root', type=Path, default=Path.cwd(), help='Target repository root')
     parser.add_argument('--source', type=Path, default=Path('src'), help='Source directory relative to root')
     parser.add_argument('--coverage', type=Path, help='Istanbul coverage-final.json (optional)')

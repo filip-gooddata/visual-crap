@@ -3,3 +3,7 @@ __pycache__/
 visual-crap.html
 coverage/
 node_modules/
+build/
+dist/
+*.spec
+version.txt
