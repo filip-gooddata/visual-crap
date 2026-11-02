@@ -1,0 +1,31 @@
+.github/workflows/release.yml
+  s_b11792c05e3401::t_614b571858e35f 65-66
+README.md
+  s_b11792c05e3401::t_c774425fbe037e 21,25
+canvas.html
+  s_b11792c05e3401::t_9001a020416403 3,6,35,38
+filetree-force.mjs
+  s_b11792c05e3401::t_93d8e098367964 67
+force-worker.bundle.js
+  s_b11792c05e3401::t_44178fa4117250 1
+force-worker.js
+  s_b11792c05e3401::t_05c4e1e3dc653f 5,9,20-25,28-33,36,38-39,42-44
+tests/forces.cjs
+  s_b11792c05e3401::t_7c62b43773e64c 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7d00b602afe5eafc1bf19b03e04990b197cda0f5",
+  "prompts": {},
+  "sessions": {
+    "s_b11792c05e3401": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d7f-0939-7312-a3b5-9a3e8cb91c97",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "Filip Kalný <336421905+filip-gooddata@users.noreply.github.com>"
+    }
+  }
+}
