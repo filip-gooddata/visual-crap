@@ -1,0 +1,27 @@
+README.md
+  s_b11792c05e3401::t_b8168fd88a6fa6 25
+adaptive-motion.mjs
+  s_b11792c05e3401::t_479c737a927ef9 7-10,14,20,24,31,48
+force-worker.bundle.js
+  s_b11792c05e3401::t_e77ede43201f06 1
+force-worker.js
+  s_b11792c05e3401::t_49f1dfb5a06cc6 3,21-26,28
+tests/adaptive.mjs
+  s_b11792c05e3401::t_e69f36ab88e2e5 2-6,11,28-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8aae399cb3f9a436118ba62c74449618f651c545",
+  "prompts": {},
+  "sessions": {
+    "s_b11792c05e3401": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d7f-0939-7312-a3b5-9a3e8cb91c97",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "Filip Kalný <336421905+filip-gooddata@users.noreply.github.com>"
+    }
+  }
+}
