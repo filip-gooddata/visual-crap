@@ -1,0 +1,25 @@
+.github/workflows/release.yml
+  s_b11792c05e3401::t_5e9ab86c0557b3 53,56-59,74,93,95,100
+README.md
+  s_b11792c05e3401::t_9b2b2006872330 36
+tests/test_env.py
+  s_b11792c05e3401::t_12d94cbe5564ca 1-28
+visual_crap.py
+  s_b11792c05e3401::t_0c3269a377d450 18-28,53,75,129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "69d1d96da7f7b9ca916edd0ccea6f9889032e417",
+  "prompts": {},
+  "sessions": {
+    "s_b11792c05e3401": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d7f-0939-7312-a3b5-9a3e8cb91c97",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "Filip Kalný <336421905+filip-gooddata@users.noreply.github.com>"
+    }
+  }
+}
