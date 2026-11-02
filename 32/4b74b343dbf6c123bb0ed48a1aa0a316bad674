@@ -1,0 +1,25 @@
+README.md
+  s_b11792c05e3401::t_23f449d5bb974c 25
+force-worker.bundle.js
+  s_b11792c05e3401::t_110477370a9b5e 1
+force-worker.js
+  s_b11792c05e3401::t_b6ce28f977b6c8 6
+tests/forces.cjs
+  s_b11792c05e3401::t_0418af5b3d86d9 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "324b74b343dbf6c123bb0ed48a1aa0a316bad674",
+  "prompts": {},
+  "sessions": {
+    "s_b11792c05e3401": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d7f-0939-7312-a3b5-9a3e8cb91c97",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "Filip Kalný <336421905+filip-gooddata@users.noreply.github.com>"
+    }
+  }
+}
