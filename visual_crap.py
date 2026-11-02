@@ -15,6 +15,17 @@ import tempfile
 TOOL = Path(__file__).resolve().parent
 EXCLUDED = {'__tests__', '__mocks__', '__fixtures__', 'testUtils', 'test-utils', 'tests', 'fixtures'}
 
+def external_environment():
+    """Restore the system library search path for external programs in frozen Linux builds."""
+    env = os.environ.copy()
+    if getattr(sys, 'frozen', False) and sys.platform.startswith('linux'):
+        original = env.get('LD_LIBRARY_PATH_ORIG')
+        if original is None:
+            env.pop('LD_LIBRARY_PATH', None)
+        else:
+            env['LD_LIBRARY_PATH'] = original
+    return env
+
 def excluded(path):
     return bool(set(Path(path).parts) & EXCLUDED) or bool(re.search(r'\.(?:test|spec)\.[cm]?[jt]sx?$', str(path))) or str(path).endswith('.d.ts')
 
@@ -39,7 +50,7 @@ def build(health, graph, output, root, source, files):
         if key in lookup:
             ids[n['id']] = lookup[key]
     request = {'root': str(root), 'source': str(source), 'findings': findings, 'files': [str(p) for p in files]}
-    resolved = json.loads(subprocess.check_output(['node', '--max-old-space-size=4096', str(TOOL / 'ts-relations.cjs')], input=json.dumps(request), cwd=root, text=True))
+    resolved = json.loads(subprocess.check_output(['node', '--max-old-space-size=4096', str(TOOL / 'ts-relations.cjs')], input=json.dumps(request), cwd=root, text=True, env=external_environment()))
     edges = []
     boundaries = {}
     for source_node, target, kind, site in resolved['edges']:
@@ -61,7 +72,7 @@ def build(health, graph, output, root, source, files):
             edges.append([a, b, 'inferred', f"{edge.get('source_file', '')}:{edge.get('source_location', '')}"])
     incoming = {e[1] for e in edges}
     try:
-        head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, stderr=subprocess.DEVNULL, text=True).strip()
+        head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, stderr=subprocess.DEVNULL, text=True, env=external_environment()).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         head = 'unavailable'
     data = {'nodes': nodes, 'edges': edges, 'unlinked': sum(i not in incoming for i in range(len(findings))), 'entryOnly': sum({e[2] for e in edges if e[1] == i} == {'entry'} for i in range(len(findings))), 'tsMatched': resolved['matched'], 'tsAvailable': resolved['available'], 'findingCount': len(findings), 'boundaryCount': len(boundaries), 'matched': len(ids), 'head': head, 'summary': health.get('summary', {})}
@@ -115,7 +126,7 @@ def main():
             patterns = ['**/*.test.*', '**/*.spec.*', '**/__tests__/**', '**/__mocks__/**', '**/__fixtures__/**', '**/testUtils/**', '**/test-utils/**', '**/tests/**', '**/fixtures/**']
             config.write_text(json.dumps({'ignorePatterns': patterns, 'health': {'ignore': patterns}}))
             cmd += ['--config', str(config)]
-            health = json.loads(subprocess.check_output(cmd, cwd=root, text=True))
+            health = json.loads(subprocess.check_output(cmd, cwd=root, text=True, env=external_environment()))
     build(health, graph, args.output.resolve(), root, source, files)
 
 if __name__ == '__main__':

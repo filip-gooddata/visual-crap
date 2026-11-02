@@ -50,8 +50,13 @@ jobs:
       matrix:
         include:
           - runner: macos-15
+            os: macos
             arch: arm64
           - runner: macos-15-intel
+            os: macos
+            arch: x86_64
+          - runner: ubuntu-22.04
+            os: linux
             arch: x86_64
     runs-on: ${{ matrix.runner }}
     steps:
@@ -66,6 +71,7 @@ jobs:
         run: |
           node tests/forces.cjs
           node tests/adaptive.mjs
+          python tests/test_env.py
           npm install --prefix /tmp/visual-crap-test typescript@5.9.3 --no-save --no-package-lock
           TYPESCRIPT_DIR=/tmp/visual-crap-test/node_modules/typescript node tests/relationships.cjs
       - name: Build
@@ -84,13 +90,14 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.tag }}
           ARCH: ${{ matrix.arch }}
+          OS: ${{ matrix.os }}
         run: |
-          name="visual-crap-$VERSION-macos-$ARCH"
+          name="visual-crap-$VERSION-$OS-$ARCH"
           tar -czf "$name.tar.gz" -C dist visual-crap
           shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256"
       - uses: actions/upload-artifact@v4
         with:
-          name: macos-${{ matrix.arch }}
+          name: ${{ matrix.os }}-${{ matrix.arch }}
           path: visual-crap-*.tar.gz*
           if-no-files-found: error
 
