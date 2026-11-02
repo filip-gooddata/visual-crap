@@ -6,6 +6,7 @@ import sys
 import unittest
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 spec = importlib.util.spec_from_file_location('visual_crap', Path(__file__).resolve().parents[1] / 'visual_crap.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

@@ -71,13 +71,16 @@ jobs:
         run: |
           node tests/forces.cjs
           node tests/adaptive.mjs
-          python tests/test_env.py
           npm install --prefix /tmp/visual-crap-test typescript@5.9.3 --no-save --no-package-lock
           TYPESCRIPT_DIR=/tmp/visual-crap-test/node_modules/typescript node tests/relationships.cjs
       - name: Build
         env:
           VERSION: ${{ needs.version.outputs.tag }}
         run: ./build.sh
+      - name: Test community layout
+        run: |
+          .venv/bin/python tests/test_communities.py
+          .venv/bin/python tests/test_env.py
       - name: Test executable
         env:
           VERSION: ${{ needs.version.outputs.tag }}

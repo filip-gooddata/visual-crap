@@ -7,6 +7,7 @@ import gzip
 import json
 import os
 from pathlib import Path
+from community_layout import layout_communities
 import re
 import subprocess
 import sys
@@ -75,7 +76,8 @@ def build(health, graph, output, root, source, files):
         head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, stderr=subprocess.DEVNULL, text=True, env=external_environment()).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         head = 'unavailable'
-    data = {'nodes': nodes, 'edges': edges, 'unlinked': sum(i not in incoming for i in range(len(findings))), 'entryOnly': sum({e[2] for e in edges if e[1] == i} == {'entry'} for i in range(len(findings))), 'tsMatched': resolved['matched'], 'tsAvailable': resolved['available'], 'findingCount': len(findings), 'boundaryCount': len(boundaries), 'matched': len(ids), 'head': head, 'summary': health.get('summary', {})}
+    communities, community_centers = layout_communities(nodes, edges, source.relative_to(root).as_posix())
+    data = {'sourceRoot': source.relative_to(root).as_posix(), 'communities': communities, 'communityCenters': community_centers, 'nodes': nodes, 'edges': edges, 'unlinked': sum(i not in incoming for i in range(len(findings))), 'entryOnly': sum({e[2] for e in edges if e[1] == i} == {'entry'} for i in range(len(findings))), 'tsMatched': resolved['matched'], 'tsAvailable': resolved['available'], 'findingCount': len(findings), 'boundaryCount': len(boundaries), 'matched': len(ids), 'head': head, 'summary': health.get('summary', {})}
     template = (TOOL / 'canvas.html').read_text()
     template = template.replace('/* HEAT */', (TOOL / 'heat.js').read_text())
     template = template.replace('/* WORKER */', 'const workerSource = ' + json.dumps((TOOL / 'force-worker.bundle.js').read_text()).replace('</', '<\\/') + ';')
