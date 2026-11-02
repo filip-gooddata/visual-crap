@@ -3,7 +3,7 @@ import { fileTreeForce } from './filetree-force.mjs';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
 
 let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, movement = 0;
-const movementThreshold = 1, coolingRate = 0.025;
+const movementThreshold = 1, coolingRate = 0.01;
 function publish() {
     const coords = new Float32Array(nodes.length * 2);
     nodes.forEach((node, i) => { coords[i * 2] = node.x; coords[i * 2 + 1] = node.y; });

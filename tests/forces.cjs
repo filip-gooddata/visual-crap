@@ -35,7 +35,7 @@ assert.ok(gap(simulate(0, 1, { repulsion: 0, springLength: 10 }).before) < gap(s
 const adjustRepulsion = simulate(0, 0, { repulsion: 0 });
 assert.ok(gap(adjustRepulsion.change(0, 0, { repulsion: 300 })) > gap(adjustRepulsion.before), 'repulsion update must reheat the current layout');
 const calm = simulate(0, 0, { repulsion: 0 });
-assert.ok(calm.state.alpha < 1, 'energy must decay when motion is calm');
+assert.ok(Math.abs(calm.state.alpha - 0.99 ** 3) < 1e-12, 'calm energy must decay by 1% per tick');
 const moving = simulate(0, 2, { repulsion: 0, springLength: 10 });
 assert.equal(moving.state.coolingPaused, true, 'large movement must pause cooling');
 const initialAlpha = moving.state.alpha;
