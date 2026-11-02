@@ -65,6 +65,7 @@ jobs:
       - name: Test graph analysis and force controls
         run: |
           node tests/forces.cjs
+          node tests/adaptive.mjs
           npm install --prefix /tmp/visual-crap-test typescript@5.9.3 --no-save --no-package-lock
           TYPESCRIPT_DIR=/tmp/visual-crap-test/node_modules/typescript node tests/relationships.cjs
       - name: Build

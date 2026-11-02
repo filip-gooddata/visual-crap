@@ -1,27 +1,26 @@
 // Bundled with d3-force for a self-contained offline canvas. See README for rebuild.
 import { fileTreeForce } from './filetree-force.mjs';
+import { createMotionTracker, movementThreshold } from './adaptive-motion.mjs';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
 
-let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, movement = 0;
-const movementThreshold = 1, coolingRate = 0.01;
+let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, tracker, movement = 0, threshold = 1, damping = 0.85;
+const coolingRate = 0.01;
 function publish() {
     const coords = new Float32Array(nodes.length * 2);
     nodes.forEach((node, i) => { coords[i * 2] = node.x; coords[i * 2 + 1] = node.y; });
-    postMessage({ type: 'positions', coords, alpha: simulation.alpha(), movement, coolingPaused: movement > movementThreshold }, [coords.buffer]);
+    postMessage({ type: 'positions', coords, alpha: simulation.alpha(), movement, threshold, damping, coolingPaused: movement > threshold }, [coords.buffer]);
 }
 function run() {
     clearTimeout(timer);
     function step() {
         for (let i = 0; i < 3 && simulation.alpha() > 0.003; i++) {
+            const alpha = simulation.alpha();
+            tracker.capture();
             simulation.tick();
-            let squared = 0, count = 0;
-            for (const n of nodes) {
-                if (n.fx != null || n.fy != null) continue;
-                squared += n.vx * n.vx + n.vy * n.vy;
-                count++;
-            }
-            movement = count ? Math.sqrt(squared / count) : 0;
-            if (movement <= movementThreshold) simulation.alpha(simulation.alpha() * (1 - coolingRate));
+            const motion = tracker.measure(alpha, damping);
+            movement = motion.movement; threshold = movementThreshold(alpha); damping = motion.damping;
+            simulation.velocityDecay(damping);
+            if (movement <= threshold) simulation.alpha(alpha * (1 - coolingRate));
         }
         publish();
         if (simulation.alpha() > 0.003) timer = setTimeout(step, 0);
@@ -37,7 +36,7 @@ function setForces({fileStrength: file, callStrength: calls, repulsion = 100, sp
 }
 onmessage = ({ data }) => {
     if (data.type === 'init') {
-        nodes = data.nodes;
+        nodes = data.nodes; tracker = createMotionTracker(nodes); damping = 0.85;
         treeForce = fileTreeForce();
         linkForce = forceLink(data.edges.map(([source, target]) => ({ source, target })));
         chargeForce = forceManyBody().distanceMax(220).theta(0.9);
@@ -54,12 +53,14 @@ onmessage = ({ data }) => {
             .alphaDecay(0);
         run();
     } else if (data.type === 'strengths' && simulation) {
-        setForces(data);
+        setForces(data); tracker.reset();
         simulation.alpha(Math.max(simulation.alpha(), 0.3)); run();
     } else if (data.type === 'pin' && nodes?.[data.id]) {
+        tracker.reset();
         nodes[data.id].fx = data.x; nodes[data.id].fy = data.y; nodes[data.id].x = data.x; nodes[data.id].y = data.y;
         simulation.alpha(Math.max(simulation.alpha(), 0.2)); run();
     } else if (data.type === 'release' && nodes?.[data.id]) {
+        tracker.reset();
         nodes[data.id].fx = null; nodes[data.id].fy = null;
         simulation.alpha(Math.max(simulation.alpha(), 0.15)); run();
     }
