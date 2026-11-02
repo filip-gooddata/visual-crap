@@ -2,16 +2,27 @@
 import { fileTreeForce } from './filetree-force.mjs';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
 
-let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer;
+let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, coolingRate = 0.025, movement = 0;
+const movementThreshold = 1;
 function publish() {
     const coords = new Float32Array(nodes.length * 2);
     nodes.forEach((node, i) => { coords[i * 2] = node.x; coords[i * 2 + 1] = node.y; });
-    postMessage({ type: 'positions', coords, alpha: simulation.alpha() }, [coords.buffer]);
+    postMessage({ type: 'positions', coords, alpha: simulation.alpha(), movement, coolingPaused: movement > movementThreshold }, [coords.buffer]);
 }
 function run() {
     clearTimeout(timer);
     function step() {
-        for (let i = 0; i < 3 && simulation.alpha() > 0.003; i++) simulation.tick();
+        for (let i = 0; i < 3 && simulation.alpha() > 0.003; i++) {
+            simulation.tick();
+            let squared = 0, count = 0;
+            for (const n of nodes) {
+                if (n.fx != null || n.fy != null) continue;
+                squared += n.vx * n.vx + n.vy * n.vy;
+                count++;
+            }
+            movement = count ? Math.sqrt(squared / count) : 0;
+            if (movement <= movementThreshold) simulation.alpha(simulation.alpha() * (1 - coolingRate));
+        }
         publish();
         if (simulation.alpha() > 0.003) timer = setTimeout(step, 0);
     }
@@ -33,17 +44,20 @@ onmessage = ({ data }) => {
         anchorX = forceX(d => d.anchorX);
         anchorY = forceY(d => d.anchorY);
         setForces(data);
+        coolingRate = data.coolingRate ?? 0.025;
         simulation = forceSimulation(nodes).stop()
             .force('filetree', treeForce)
             .force('links', linkForce)
             .force('charge', chargeForce)
             .force('x', anchorX)
             .force('y', anchorY)
-            .alphaDecay(data.coolingRate ?? 0.025);
+            .velocityDecay(0.85)
+            .alphaDecay(0);
         run();
     } else if (data.type === 'strengths' && simulation) {
         setForces(data);
-        simulation.alphaDecay(data.coolingRate ?? 0.025).alpha(Math.max(simulation.alpha(), 0.3)); run();
+        coolingRate = data.coolingRate ?? 0.025;
+        simulation.alpha(Math.max(simulation.alpha(), 0.3)); run();
     } else if (data.type === 'pin' && nodes?.[data.id]) {
         nodes[data.id].fx = data.x; nodes[data.id].fy = data.y; nodes[data.id].x = data.x; nodes[data.id].y = data.y;
         simulation.alpha(Math.max(simulation.alpha(), 0.2)); run();
