@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createMotionTracker, movementThreshold, coolingFactor } from '../adaptive-motion.mjs';
 assert.equal(coolingFactor(0, 1), 1);
-assert.equal(coolingFactor(0.5, 1), 0.5);
+assert.equal(coolingFactor(0.5, 1), 0.25);
 assert.equal(coolingFactor(1, 1), 0);
 assert.equal(coolingFactor(2, 1), 0);
 assert.equal(movementThreshold(1), 1);

@@ -5,7 +5,7 @@ export function movementThreshold(alpha) {
 }
 
 export function coolingFactor(movement, threshold) {
-    return Math.max(0, 1 - movement / threshold);
+    return Math.max(0, 1 - movement / threshold) ** 2;
 }
 
 export function createMotionTracker(nodes) {
