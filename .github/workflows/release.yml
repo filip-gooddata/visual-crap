@@ -62,6 +62,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Test force controls
+        run: node tests/forces.cjs
       - name: Build
         env:
           VERSION: ${{ needs.version.outputs.tag }}

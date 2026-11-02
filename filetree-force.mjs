@@ -64,6 +64,7 @@ export function fileTreeForce(strength = 0.08) {
     }
     function force(alpha) { apply(alpha, false); }
     force.initialize = initialize;
+    force.strength = value => { strength = value; return force; };
     force.energy = () => apply(0, true);
     return force;
 }
