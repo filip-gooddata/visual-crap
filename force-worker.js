@@ -1,6 +1,6 @@
 // Bundled with d3-force for a self-contained offline canvas. See README for rebuild.
 import { fileTreeForce } from './filetree-force.mjs';
-import { createMotionTracker, movementThreshold } from './adaptive-motion.mjs';
+import { createMotionTracker, movementThreshold, coolingFactor } from './adaptive-motion.mjs';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
 
 let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, tracker, movement = 0, threshold = 1, damping = 0.85;
@@ -18,9 +18,14 @@ function run() {
             tracker.capture();
             simulation.tick();
             const motion = tracker.measure(alpha, damping);
-            movement = motion.movement; threshold = movementThreshold(alpha); damping = motion.damping;
+            movement = motion.movement; threshold = movementThreshold(alpha);
+            // When a moving outlier holds cooling, increase damping gradually;
+            // ease it back only after motion is under the threshold.
+            damping = movement > threshold * 0.5
+                ? Math.min(0.99, Math.max(motion.damping, damping + 0.005))
+                : Math.max(motion.damping, damping - 0.005);
             simulation.velocityDecay(damping);
-            if (movement <= threshold) simulation.alpha(alpha * (1 - coolingRate));
+            simulation.alpha(alpha * (1 - coolingRate * coolingFactor(movement, threshold)));
         }
         publish();
         if (simulation.alpha() > 0.003) timer = setTimeout(step, 0);
