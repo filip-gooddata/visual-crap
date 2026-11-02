@@ -1,0 +1,39 @@
+.github/workflows/release.yml
+  s_b11792c05e3401::t_7ee78651036d52 65-69,81
+README.md
+  s_b11792c05e3401::t_e160919e3f46bd 25
+build.sh
+  s_b11792c05e3401::t_553c90eb11cbcd 11
+canvas.html
+  s_b11792c05e3401::t_aeacf703dc33a9 6,32,38,47
+force-worker.bundle.js
+  s_b11792c05e3401::t_5303bee3972a76 1
+force-worker.js
+  s_b11792c05e3401::t_171a1cd8e9d117 5,20,24-25,31-32,35,39,42,45-46
+tests/forces.cjs
+  s_b11792c05e3401::t_e142d2a68f74b5 5,9,15-16,28-35
+tests/relationships.cjs
+  s_b11792c05e3401::t_28df1dcc8694e9 1-40
+tests/smoke.py
+  s_b11792c05e3401::t_8d6033b0e10298 5,17-19,37-38
+ts-relations.cjs
+  s_b11792c05e3401::t_e9223f26632c22 1-182
+visual_crap.py
+  s_b11792c05e3401::t_cdd008d6503dbc 21,41-54,59,67,75,119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7917b9caab06c108adb3493b62448c1405719ff3",
+  "prompts": {},
+  "sessions": {
+    "s_b11792c05e3401": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18d7f-0939-7312-a3b5-9a3e8cb91c97",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "Filip Kalný <336421905+filip-gooddata@users.noreply.github.com>"
+    }
+  }
+}
