@@ -18,7 +18,7 @@ EXCLUDED = {'__tests__', '__mocks__', '__fixtures__', 'testUtils', 'test-utils',
 def excluded(path):
     return bool(set(Path(path).parts) & EXCLUDED) or bool(re.search(r'\.(?:test|spec)\.[cm]?[jt]sx?$', str(path))) or str(path).endswith('.d.ts')
 
-def build(health, graph, output, root, source):
+def build(health, graph, output, root, source, files):
     findings = [f for f in health.get('findings', []) if (root / f['path']).resolve().is_relative_to(source) and not excluded(f['path']) and f.get('crap') is not None]
     if not findings:
         raise ValueError('No scored production functions found in the Fallow report')
@@ -38,12 +38,25 @@ def build(health, graph, output, root, source):
             continue
         if key in lookup:
             ids[n['id']] = lookup[key]
-    edges, seen = [], set()
+    request = {'root': str(root), 'source': str(source), 'findings': findings, 'files': [str(p) for p in files]}
+    resolved = json.loads(subprocess.check_output(['node', '--max-old-space-size=4096', str(TOOL / 'ts-relations.cjs')], input=json.dumps(request), cwd=root, text=True))
+    edges = []
+    boundaries = {}
+    for source_node, target, kind, site in resolved['edges']:
+        if isinstance(source_node, dict):
+            bkey = (source_node['boundary'], source_node['path'], source_node['name'])
+            if bkey not in boundaries:
+                boundaries[bkey] = len(nodes)
+                nodes.append({**source_node, 'cyclomatic': None, 'crap': None, 'coverage_source': None, 'coverage_tier': None, 'coverage_pct': None})
+            source_node = boundaries[bkey]
+        edges.append([source_node, target, kind, site])
+    known_calls = {(edge[0], edge[1]) for edge in edges if edge[2] == 'call'}
+    seen = set()
     for edge in graph.get('edges', []):
         if edge.get('relation') != 'calls' or excluded(edge.get('source_file', '')) or edge.get('source') not in ids or edge.get('target') not in ids:
             continue
         a, b = ids[edge['source']], ids[edge['target']]
-        if (a, b) not in seen:
+        if (a, b) not in seen and (a, b) not in known_calls:
             seen.add((a, b))
             edges.append([a, b, 'inferred', f"{edge.get('source_file', '')}:{edge.get('source_location', '')}"])
     incoming = {e[1] for e in edges}
@@ -51,7 +64,7 @@ def build(health, graph, output, root, source):
         head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, stderr=subprocess.DEVNULL, text=True).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         head = 'unavailable'
-    data = {'nodes': nodes, 'edges': edges, 'unlinked': len(nodes)-len(incoming), 'entryOnly': 0, 'findingCount': len(nodes), 'boundaryCount': 0, 'matched': len(ids), 'head': head, 'summary': health.get('summary', {})}
+    data = {'nodes': nodes, 'edges': edges, 'unlinked': sum(i not in incoming for i in range(len(findings))), 'entryOnly': sum({e[2] for e in edges if e[1] == i} == {'entry'} for i in range(len(findings))), 'tsMatched': resolved['matched'], 'tsAvailable': resolved['available'], 'findingCount': len(findings), 'boundaryCount': len(boundaries), 'matched': len(ids), 'head': head, 'summary': health.get('summary', {})}
     template = (TOOL / 'canvas.html').read_text()
     template = template.replace('/* HEAT */', (TOOL / 'heat.js').read_text())
     template = template.replace('/* WORKER */', 'const workerSource = ' + json.dumps((TOOL / 'force-worker.bundle.js').read_text()).replace('</', '<\\/') + ';')
@@ -59,7 +72,7 @@ def build(health, graph, output, root, source):
     template = template.replace('/* DATA */', "(async () => { const bytes = Uint8Array.from(atob('" + payload + "'), c => c.charCodeAt(0)); const data = JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());")
     template = template.replace('/* END DATA */', '})().catch(e => { document.querySelector("#details").textContent = String(e); });')
     output.write_text(template)
-    print(f'{len(nodes)} functions, {len(ids)} matched, {len(edges)} inferred relationships; wrote {output}')
+    print(f"{len(findings)} functions, {len(boundaries)} boundaries, {resolved['matched']} matched by TypeScript, {len(ids)} by Graphify, {len(edges)} relationships; wrote {output}")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -103,7 +116,7 @@ def main():
             config.write_text(json.dumps({'ignorePatterns': patterns, 'health': {'ignore': patterns}}))
             cmd += ['--config', str(config)]
             health = json.loads(subprocess.check_output(cmd, cwd=root, text=True))
-    build(health, graph, args.output.resolve(), root, source)
+    build(health, graph, args.output.resolve(), root, source, files)
 
 if __name__ == '__main__':
     try:

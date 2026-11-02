@@ -2,6 +2,7 @@
 import base64
 import gzip
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -13,6 +14,9 @@ with tempfile.TemporaryDirectory() as temp:
     root = Path(temp)
     src = root / 'src'
     src.mkdir()
+    if os.environ.get('TYPESCRIPT_DIR'):
+        (root / 'node_modules').mkdir()
+        (root / 'node_modules' / 'typescript').symlink_to(os.environ['TYPESCRIPT_DIR'], target_is_directory=True)
     (root / 'package.json').write_text('{"name":"fixture","version":"1.0.0"}')
     code = src / 'main.ts'
     code.write_text('export function leaf(x: number) { return x > 2 ? x : 0; }\nexport function caller(x: number) { return leaf(x); }\n')
@@ -30,5 +34,6 @@ with tempfile.TemporaryDirectory() as temp:
     actual = {n['name']: (n['coverage_source'], n['coverage_pct'], n['crap']) for n in data['nodes']}
     assert actual == {'leaf': ('istanbul', 0.0, 6.0), 'caller': ('istanbul', 100.0, 1.0)}, actual
     assert data['summary']['functions_analyzed'] == 2, data['summary']
-    assert len(data['edges']) == 1 and data['edges'][0][2] == 'inferred', data['edges']
+    assert len(data['edges']) == 1 and data['edges'][0][2] == ('call' if os.environ.get('TYPESCRIPT_DIR') else 'inferred'), data['edges']
+    assert data['tsAvailable'] == bool(os.environ.get('TYPESCRIPT_DIR'))
     print('Binary smoke test passed')

@@ -8,4 +8,4 @@ printf '%s\n' "${VERSION:-dev}" > version.txt
 .venv/bin/pyinstaller --noconfirm --clean --onefile --name visual-crap \
     --collect-all graphify --collect-all tree_sitter \
     --add-data canvas.html:. --add-data heat.js:. --add-data force-worker.bundle.js:. \
-    --add-data version.txt:. visual_crap.py
+    --add-data version.txt:. --add-data ts-relations.cjs:. visual_crap.py

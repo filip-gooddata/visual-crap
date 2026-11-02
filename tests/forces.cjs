@@ -2,18 +2,18 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync('force-worker.bundle.js', 'utf8');
-function simulate(fileStrength, callStrength) {
+function simulate(fileStrength, callStrength, options = {}) {
     let latest;
     const context = { Float32Array, Map, Set, Math, setTimeout: () => 1, clearTimeout: () => {}, setInterval: () => 1, clearInterval: () => {}, postMessage: (data) => { latest = data; } };
     vm.runInNewContext(source, context);
-    context.onmessage({ data: { type: 'init', fileStrength, callStrength, nodes: [
+    context.onmessage({ data: { type: 'init', fileStrength, callStrength, ...options, nodes: [
         { x: 0, y: 0, anchorX: 0, anchorY: 0, treePath: ['src', 'one.ts'] },
         { x: 100, y: 0, anchorX: 100, anchorY: 0, treePath: ['src', 'one.ts'] },
     ], edges: [[0, 1, 'inferred', '']] } });
     const before = Array.from(latest.coords);
     assert.ok(!('trial' in latest) && !('optimizing' in latest));
-    return { before, change(file, call) {
-        context.onmessage({ data: { type: 'strengths', fileStrength: file, callStrength: call } });
+    return { before, change(file, call, options = {}) {
+        context.onmessage({ data: { type: 'strengths', fileStrength: file, callStrength: call, ...options } });
         return Array.from(latest.coords);
     } };
 }
@@ -25,4 +25,12 @@ assert.ok(calls[2] - calls[0] < noForces[2] - noForces[0], 'call springs must mo
 const changed = simulate(0, 0);
 const after = changed.change(2, 2);
 assert.ok(after[2] - after[0] < changed.before[2] - changed.before[0], 'slider updates must affect the live simulation');
+const gap = coords => coords[2] - coords[0];
+assert.ok(gap(simulate(0, 0, { repulsion: 300 }).before) > gap(simulate(0, 0, { repulsion: 0 }).before), 'repulsion must separate nodes');
+assert.ok(gap(simulate(0, 1, { repulsion: 0, springLength: 10 }).before) < gap(simulate(0, 1, { repulsion: 0, springLength: 120 }).before), 'spring length must change the target spacing');
+const adjustRepulsion = simulate(0, 0, { repulsion: 0 });
+assert.ok(gap(adjustRepulsion.change(0, 0, { repulsion: 300 })) > gap(adjustRepulsion.before), 'repulsion update must reheat the current layout');
+const cool = simulate(0, 1, { coolingRate: 0.1 });
+const slow = simulate(0, 1, { coolingRate: 0.005 });
+assert.ok(gap(slow.before) < gap(cool.before), 'slower cooling must retain more force over ticks');
 console.log('Force behavior passed');
