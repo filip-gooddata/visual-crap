@@ -2,8 +2,8 @@
 import { fileTreeForce } from './filetree-force.mjs';
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY } from 'd3-force';
 
-let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, coolingRate = 0.025, movement = 0;
-const movementThreshold = 1;
+let simulation, nodes, treeForce, linkForce, chargeForce, anchorX, anchorY, timer, movement = 0;
+const movementThreshold = 1, coolingRate = 0.025;
 function publish() {
     const coords = new Float32Array(nodes.length * 2);
     nodes.forEach((node, i) => { coords[i * 2] = node.x; coords[i * 2 + 1] = node.y; });
@@ -44,7 +44,6 @@ onmessage = ({ data }) => {
         anchorX = forceX(d => d.anchorX);
         anchorY = forceY(d => d.anchorY);
         setForces(data);
-        coolingRate = data.coolingRate ?? 0.025;
         simulation = forceSimulation(nodes).stop()
             .force('filetree', treeForce)
             .force('links', linkForce)
@@ -56,7 +55,6 @@ onmessage = ({ data }) => {
         run();
     } else if (data.type === 'strengths' && simulation) {
         setForces(data);
-        coolingRate = data.coolingRate ?? 0.025;
         simulation.alpha(Math.max(simulation.alpha(), 0.3)); run();
     } else if (data.type === 'pin' && nodes?.[data.id]) {
         nodes[data.id].fx = data.x; nodes[data.id].fy = data.y; nodes[data.id].x = data.x; nodes[data.id].y = data.y;
